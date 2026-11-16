@@ -1,0 +1,111 @@
+---
+import '../../../games/star-kitsune/style.css';
+import audioJs from '../../../games/star-kitsune/audio.js?raw';
+import gameJs from '../../../games/star-kitsune/game.js?raw';
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>STAR KITSUNE - スターキツネ</title>
+  {/* Three.js CDN */}
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    {/* レトロSF HUD オーバーレイ */}
+    <div id="hud" class="hud-hidden">
+      <div class="hud-top-left">
+        <div class="hud-label">SHIELD</div>
+        <div class="shield-bar-container">
+          <div id="shield-bar" class="shield-bar-fill"></div>
+        </div>
+        <div class="hud-sub-label" id="shield-text">100%</div>
+      </div>
+
+      <div class="hud-top-center">
+        <div class="score-box">
+          <span class="hud-title">SCORE</span>
+          <span id="score-display">000000</span>
+        </div>
+        <div class="distance-box">
+          <span class="hud-title">DIST</span>
+          <span id="dist-display">0m</span>
+        </div>
+      </div>
+
+      <div class="hud-top-right">
+        <div class="hud-label">BOOST</div>
+        <div class="boost-bar-container">
+          <div id="boost-bar" class="boost-bar-fill"></div>
+        </div>
+        <div class="hud-sub-label">ROLL: [Q] / [E]</div>
+      </div>
+
+      {/* 照準レティクル */}
+      <div id="crosshair">
+        <div class="crosshair-ring"></div>
+        <div class="crosshair-center"></div>
+      </div>
+
+      {/* 通信ウィンドウ (スターフォックス風) */}
+      <div id="radio-box" class="radio-box-hidden">
+        <div class="radio-portrait">
+          <div class="kitsune-face-icon">🦊</div>
+          <div class="radio-name">KITSUNE</div>
+        </div>
+        <div class="radio-message-container">
+          <div id="radio-message" class="radio-message"></div>
+        </div>
+      </div>
+    </div>
+
+    {/* スタート画面 */}
+    <div id="start-screen" class="screen-overlay">
+      <div class="title-container">
+        <h1 class="game-logo">STAR KITSUNE</h1>
+        <div class="subtitle">スターキツネ : コーネリア防衛線</div>
+      </div>
+
+      <div class="ship-preview-badge">
+        <span class="badge-icon">🦊</span>
+        <span>超音速可変戦闘機「アードフォックス」発進準備完了</span>
+      </div>
+
+      <div class="instructions-panel">
+        <h3>CONTROLS / 操作方法</h3>
+        <ul>
+          <li><span class="key">W / A / S / D</span> または <span class="key">↑ / ← / ↓ / →</span> : 機体移動（上下反転なし）</li>
+          <li><span class="key">SPACE</span> または <span class="key">クリック</span> : プラズマレーザー発射</li>
+          <li><span class="key">Q</span> / <span class="key">E</span> または <span class="key">Shift + 移動</span> : <b>バレルロール (無敵回転回避)</b></li>
+          <li><span class="key">B</span> / <span class="key">W長押し</span> : アフターバーナー (加速ブースト)</li>
+        </ul>
+        <p class="mission-brief"><b>MISSION:</b> 迫り来るアステロイドや敵ドローンを撃破・回避し、緑の補給リングをくぐってシールドを回復せよ！</p>
+      </div>
+
+      <button id="start-btn" class="cyber-btn">START MISSION [MISSION DEPLOY]</button>
+      <div class="sound-notice">※ 音が出ます（BGM &amp; SFX 搭載）</div>
+    </div>
+
+    {/* ゲームオーバー画面 */}
+    <div id="gameover-screen" class="screen-overlay screen-hidden">
+      <h2 class="gameover-title">MISSION FAILED</h2>
+      <div class="result-details">
+        <div class="result-row">FINAL SCORE: <span id="final-score" class="highlight-val">0</span></div>
+        <div class="result-row">FLIGHT DISTANCE: <span id="final-dist" class="highlight-val">0m</span></div>
+        <div class="result-row">ENEMIES DESTROYED: <span id="final-kills" class="highlight-val">0</span></div>
+      </div>
+      <button id="restart-btn" class="cyber-btn">TRY AGAIN [RETRY]</button>
+    </div>
+  </div>
+
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+</html>

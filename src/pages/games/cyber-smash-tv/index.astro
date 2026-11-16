@@ -1,0 +1,125 @@
+---
+import '../../../games/cyber-smash-tv/style.css';
+import audioJs from '../../../games/cyber-smash-tv/audio.js?raw';
+import gameJs from '../../../games/cyber-smash-tv/game.js?raw';
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>CYBER SMASH T.V. - 2099 GAME SHOW</title>
+</head>
+<body>
+  <div id="app">
+    <header id="hud-top">
+      <div class="hud-block">
+        <span class="label">1P SCORE</span>
+        <span id="score-val" class="value neon-cyan">0000000</span>
+      </div>
+      <div class="hud-block center">
+        <span class="label">STUDIO / WAVE</span>
+        <span id="room-val" class="value neon-gold">ROOM 1 - WAVE 1/3</span>
+      </div>
+      <div class="hud-block right">
+        <span class="label">HIGH SCORE</span>
+        <span id="hiscore-val" class="value neon-pink">0100000</span>
+      </div>
+    </header>
+
+    <div id="stage-wrapper">
+      <canvas id="game-canvas" width="960" height="600"></canvas>
+      <div class="crt-overlay" aria-hidden="true"></div>
+
+      {/* TV Announcer Banner */}
+      <div id="announcer-banner" class="hidden">
+        <span id="announcer-text">GOOD LUCK! YOU'LL NEED IT!</span>
+      </div>
+
+      {/* Start / Title Screen */}
+      <div id="screen-title" class="overlay-screen">
+        <div class="tv-badge">LIVE ON NETWORK 99</div>
+        <h1 class="game-title">
+          <span class="title-top">CYBER</span>
+          <span class="title-main">SMASH T.V.</span>
+        </h1>
+        <p class="tagline">"BIG MONEY! BIG PRIZES! I LOVE IT!"</p>
+
+        <div class="controls-box">
+          <div class="ctrl-col">
+            <h3>CONTROLS</h3>
+            <ul>
+              <li><kbd>W A S D</kbd> : 移動 (Move)</li>
+              <li><kbd>↑ ↓ ← →</kbd> or <kbd>I J K L</kbd> : 8方向ショット</li>
+              <li><kbd>MOUSE</kbd> + <kbd>左クリック</kbd> : 360°エイムショット</li>
+              <li><kbd>SPACE</kbd> / <kbd>右クリック</kbd> : スマートボム</li>
+              <li><kbd>P</kbd> / <kbd>ESC</kbd> : ポーズ &nbsp;|&nbsp; <kbd>M</kbd> : サウンド切替</li>
+            </ul>
+          </div>
+          <div class="ctrl-col">
+            <h3>PRIZES &amp; POWER-UPS</h3>
+            <ul>
+              <li><span class="tag spread">S</span> スプレッド弾 &nbsp; <span class="tag laser">L</span> 貫通レーザー</li>
+              <li><span class="tag homing">H</span> 追尾ミサイル &nbsp; <span class="tag spin">O</span> 360°バースト</li>
+              <li><span class="tag shield">★</span> 無敵シールド &nbsp; <span class="tag bomb">B</span> ボム追加</li>
+              <li>📺 豪華賞品を拾ってコンボ倍率を上げろ！</li>
+            </ul>
+          </div>
+        </div>
+
+        <button id="btn-start" class="arcade-btn">INSERT COIN / START SHOW</button>
+        <p class="hint-text">ゲームパッド（ツインスティック）にも対応</p>
+      </div>
+
+      {/* Pause Screen */}
+      <div id="screen-pause" class="overlay-screen hidden">
+        <h2 class="neon-gold">COMMERCIAL BREAK (PAUSED)</h2>
+        <p>Press <kbd>P</kbd> or <kbd>ESC</kbd> to Resume</p>
+        <button id="btn-resume" class="arcade-btn">RESUME SHOW</button>
+        <button id="btn-restart-pause" class="arcade-btn secondary">RESTART</button>
+      </div>
+
+      {/* Game Over Screen */}
+      <div id="screen-gameover" class="overlay-screen hidden">
+        <div class="tv-badge danger">TRANSMISSION LOST</div>
+        <h2 class="gameover-title">GAME OVER</h2>
+        <div class="result-stats">
+          <div>FINAL SCORE: <span id="final-score" class="neon-cyan">0</span></div>
+          <div>PRIZES COLLECTED: <span id="final-prizes" class="neon-gold">0</span></div>
+          <div>ENEMIES SMASHED: <span id="final-kills" class="neon-pink">0</span></div>
+          <div>REACHED: <span id="final-room" class="neon-green">ROOM 1</span></div>
+        </div>
+        <button id="btn-retry" class="arcade-btn">PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <footer id="hud-bottom">
+      <div class="hud-block">
+        <span class="label">LIVES</span>
+        <span id="lives-val" class="value neon-green">♥♥♥</span>
+      </div>
+      <div class="hud-block">
+        <span class="label">BOMBS</span>
+        <span id="bombs-val" class="value neon-orange">💣💣💣</span>
+      </div>
+      <div class="hud-block">
+        <span class="label">WEAPON</span>
+        <span id="weapon-val" class="value neon-cyan">BLASTER</span>
+      </div>
+      <div class="hud-block">
+        <span class="label">MULTIPLIER</span>
+        <span id="mult-val" class="value neon-gold">x1.0</span>
+      </div>
+      <div class="hud-block right">
+        <button id="btn-mute" class="mini-btn" title="Mute / Unmute (M)">🔊 SOUND: ON</button>
+      </div>
+    </footer>
+  </div>
+
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+</html>

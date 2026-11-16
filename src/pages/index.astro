@@ -1,0 +1,110 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const games = [
+	{
+		slug: 'hyper-invader',
+		title: 'HYPER INVADER // 弾幕強化インベーダー',
+		genre: 'DANMAKU SHOOTER',
+		description: 'パワーアップ超強化と弾幕ボスバトルが熱い、インベーダーシューティング。',
+		badgeClass: 'text-emerald-300 bg-emerald-400/15 border-emerald-400/35',
+		hoverClass: 'hover:border-emerald-400 hover:shadow-[0_12px_30px_-12px_rgba(52,211,153,0.45)] focus-visible:border-emerald-400',
+		accentTextClass: 'text-emerald-300',
+		iconHoverClass: 'group-hover:text-emerald-300 group-focus-visible:text-emerald-300',
+	},
+	{
+		slug: 'cyber-smash-tv',
+		title: 'CYBER SMASH T.V. - 2099 GAME SHOW',
+		genre: 'ARCADE SHOOTER',
+		description: '2099年のサイバーパンクTV番組を舞台にした、ネオン輝くアリーナシューティングゲーム。',
+		badgeClass: 'text-cyan-300 bg-cyan-400/15 border-cyan-400/35',
+		hoverClass: 'hover:border-cyan-400 hover:shadow-[0_12px_30px_-12px_rgba(34,211,238,0.45)] focus-visible:border-cyan-400',
+		accentTextClass: 'text-cyan-300',
+		iconHoverClass: 'group-hover:text-cyan-300 group-focus-visible:text-cyan-300',
+	},
+	{
+		slug: 'mofumofu-bokun',
+		title: 'もふもふ暴君と秘密の添い寝 〜わがままメインクーンお世話日誌〜',
+		genre: 'VISUAL NOVEL',
+		description: 'わがままなメインクーン「レオ様」のご機嫌をとりながら過ごす、癒やしのお世話アドベンチャー。',
+		badgeClass: 'text-orange-300 bg-orange-400/15 border-orange-400/35',
+		hoverClass: 'hover:border-orange-400 hover:shadow-[0_12px_30px_-12px_rgba(251,146,60,0.45)] focus-visible:border-orange-400',
+		accentTextClass: 'text-orange-300',
+		iconHoverClass: 'group-hover:text-orange-300 group-focus-visible:text-orange-300',
+	},
+	{
+		slug: 'wagamama-megami',
+		title: 'わがまま女神と契約結婚！？ 〜天界の甘やかし生活〜',
+		genre: 'ROMANCE NOVEL',
+		description: '誇り高くて超わがままな美少女女神・セレスティアとの甘い天界ライフを描く恋愛ノベル。',
+		badgeClass: 'text-fuchsia-300 bg-fuchsia-400/15 border-fuchsia-400/35',
+		hoverClass: 'hover:border-fuchsia-400 hover:shadow-[0_12px_30px_-12px_rgba(232,121,249,0.45)] focus-visible:border-fuchsia-400',
+		accentTextClass: 'text-fuchsia-300',
+		iconHoverClass: 'group-hover:text-fuchsia-300 group-focus-visible:text-fuchsia-300',
+	},
+	{
+		slug: 'star-kitsune',
+		title: 'STAR KITSUNE - スターキツネ',
+		genre: '3D RAIL SHOOTER',
+		description: 'レトロSF風の3Dレールシューティング。敵機を撃墜してハイスコアを目指せ。',
+		badgeClass: 'text-amber-300 bg-amber-400/15 border-amber-400/35',
+		hoverClass: 'hover:border-amber-400 hover:shadow-[0_12px_30px_-12px_rgba(251,191,36,0.45)] focus-visible:border-amber-400',
+		accentTextClass: 'text-amber-300',
+		iconHoverClass: 'group-hover:text-amber-300 group-focus-visible:text-amber-300',
+	},
+];
+---
+
+<Layout title="ブラウザゲームコレクション">
+	<main class="mx-auto max-w-5xl px-6 pt-16 pb-20">
+		<header class="mb-12 text-center">
+			<h1 class="mb-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+				ブラウザゲームコレクション
+			</h1>
+			<p class="text-sm text-slate-400 sm:text-base">
+				遊びたいゲームを選択してください（新しいタブで開きます）
+			</p>
+		</header>
+
+		<section class="grid grid-cols-1 gap-6 md:grid-cols-1" aria-label="ゲーム一覧">
+			{
+				games.map((game) => (
+					<a
+						href={`/games/${game.slug}/`}
+						target="_blank"
+						rel="noopener noreferrer"
+						class={`group flex flex-col rounded-2xl border border-slate-400/15 bg-gradient-to-br from-slate-900/95 to-slate-950/95 p-6 transition duration-200 hover:-translate-y-1 focus-visible:outline-none ${game.hoverClass}`}
+					>
+						<div class="mb-4 flex items-center justify-between">
+							<span
+								class={`inline-block rounded-full border px-3 py-1 text-[11px] font-bold tracking-wider ${game.badgeClass}`}
+							>
+								{game.genre}
+							</span>
+							<span
+								class={`text-lg text-slate-500 transition duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${game.iconHoverClass}`}
+								aria-hidden="true"
+							>
+								↗
+							</span>
+						</div>
+
+						<h2 class="mb-3 text-lg leading-snug font-bold text-slate-50">
+							{game.title}
+						</h2>
+
+						<p class="mb-6 flex-grow leading-relaxed text-slate-400">
+							{game.description}
+						</p>
+
+						<div class="flex items-center justify-between border-t border-slate-400/10 pt-4 text-sm">
+							<span class={`font-semibold ${game.accentTextClass}`}>
+								ゲームプレイ
+							</span>
+						</div>
+					</a>
+				))
+			}
+		</section>
+	</main>
+</Layout>

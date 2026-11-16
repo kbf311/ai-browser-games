@@ -1,0 +1,199 @@
+---
+import { getImage } from 'astro:assets';
+import '../../../games/wagamama-megami/style.css';
+import audioJs from '../../../games/wagamama-megami/audio.js?raw';
+import storyJs from '../../../games/wagamama-megami/story.js?raw';
+import gameJs from '../../../games/wagamama-megami/game.js?raw';
+
+import cgTitle from '../../../games/wagamama-megami/assets/cg_title.jpg';
+import cgPout from '../../../games/wagamama-megami/assets/cg_pout.jpg';
+import cgBlush from '../../../games/wagamama-megami/assets/cg_blush.jpg';
+import cgAngry from '../../../games/wagamama-megami/assets/cg_angry.jpg';
+import cgHappy from '../../../games/wagamama-megami/assets/cg_happy.jpg';
+
+const [title, pout, blush, angry, happy] = await Promise.all([
+  getImage({ src: cgTitle, format: 'webp' }),
+  getImage({ src: cgPout, format: 'webp' }),
+  getImage({ src: cgBlush, format: 'webp' }),
+  getImage({ src: cgAngry, format: 'webp' }),
+  getImage({ src: cgHappy, format: 'webp' }),
+]);
+
+const gameAssets = {
+  title: title.src,
+  pout: pout.src,
+  blush: blush.src,
+  angry: angry.src,
+  happy: happy.src,
+};
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>わがまま女神と契約結婚！？ 〜天界の甘やかし生活〜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-wrapper">
+    <div id="game-container">
+      {/* 背景・イベントCGレイヤー */}
+      <div id="cg-layer">
+        <img id="cg-image-back" src={gameAssets.title} alt="CG Background">
+        <img id="cg-image-front" src={gameAssets.title} alt="CG Foreground">
+        <div id="cg-vignette"></div>
+      </div>
+
+      {/* パーティクル演出用Canvas */}
+      <canvas id="particle-canvas"></canvas>
+
+      {/* フローティング通知（好感度変化など） */}
+      <div id="floating-effects"></div>
+
+      {/* タイトル画面 */}
+      <div id="title-screen" class="screen active">
+        <div class="title-overlay"></div>
+        <div class="title-content">
+          <div class="title-badge">CELESTIAL ROMANCE VISUAL NOVEL</div>
+          <h1 class="game-title">
+            <span class="title-sub">〜天界の甘やかし生活〜</span>
+            わがまま女神と<br>契約結婚！？
+          </h1>
+          <p class="title-desc">
+            「ちょっと下僕！ 私が満足するまで、片時も離れるんじゃないわよ？」<br>
+            誇り高くて超わがまま、でも本当は寂しがり屋な美少女女神・セレスティアとの甘い天界ライフ。
+          </p>
+          <div class="title-buttons">
+            <button id="btn-start" class="btn-primary">
+              <span class="btn-icon">✦</span> はじめから
+            </button>
+            <button id="btn-continue" class="btn-secondary" disabled>
+              <span class="btn-icon">◈</span> つづきから
+            </button>
+            <button id="btn-gallery" class="btn-secondary">
+              <span class="btn-icon">❀</span> CGギャラリー
+            </button>
+          </div>
+          <div class="title-footer">
+            <span>※音声が再生されます（右上のボタンでミュート可能）</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ゲームプレイ画面 */}
+      <div id="play-screen" class="screen">
+        {/* 上部ステータス＆コントロールバー */}
+        <header id="hud-bar">
+          <div class="stats-panel">
+            <div class="stat-item">
+              <div class="stat-label">
+                <span class="stat-icon heart">♥</span> 好感度
+              </div>
+              <div class="stat-bar-bg">
+                <div id="affection-bar" class="stat-bar-fill affection" style="width: 20%;"></div>
+              </div>
+              <span id="affection-value" class="stat-value">20</span>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">
+                <span class="stat-icon mood">✦</span> ご機嫌
+              </div>
+              <div class="stat-bar-bg">
+                <div id="mood-bar" class="stat-bar-fill mood" style="width: 50%;"></div>
+              </div>
+              <span id="mood-value" class="stat-value">50</span>
+            </div>
+            <div class="chapter-badge" id="chapter-badge">プロローグ</div>
+          </div>
+
+          <div class="hud-controls">
+            <button id="btn-auto" class="hud-btn" title="オート再生">AUTO</button>
+            <button id="btn-log" class="hud-btn" title="バックログ">LOG</button>
+            <button id="btn-save" class="hud-btn" title="セーブ">SAVE</button>
+            <button id="btn-sound" class="hud-btn" title="サウンド切替">🔊</button>
+            <button id="btn-to-title" class="hud-btn" title="タイトルへ">TITLE</button>
+          </div>
+        </header>
+
+        {/* 選択肢オーバーレイ */}
+        <div id="choices-container" class="hidden"></div>
+
+        {/* メッセージウィンドウ */}
+        <div id="dialogue-box">
+          <div id="speaker-tag" class="hidden">
+            <span id="speaker-name">セレスティア</span>
+          </div>
+          <div id="dialogue-text-area">
+            <p id="dialogue-text"></p>
+          </div>
+          <div id="next-indicator" class="hidden">▼</div>
+        </div>
+      </div>
+
+      {/* エンディングリザルトオーバーレイ */}
+      <div id="ending-screen" class="screen">
+        <div class="ending-card">
+          <div id="ending-type" class="ending-type">TRUE ENDING</div>
+          <h2 id="ending-title" class="ending-title">永遠の専属下僕（という名の最愛の夫）</h2>
+          <p id="ending-summary" class="ending-summary"></p>
+          <div class="ending-stats">
+            <div>最終好感度: <strong id="end-affection">0</strong></div>
+            <div>最終ご機嫌: <strong id="end-mood">0</strong></div>
+          </div>
+          <div class="ending-actions">
+            <button id="btn-end-gallery" class="btn-secondary">CGギャラリーを見る</button>
+            <button id="btn-end-title" class="btn-primary">タイトルへ戻る</button>
+          </div>
+        </div>
+      </div>
+
+      {/* バックログモーダル */}
+      <div id="log-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>バックログ</h3>
+            <button id="btn-close-log" class="close-btn">✕</button>
+          </div>
+          <div id="log-list" class="modal-body"></div>
+        </div>
+      </div>
+
+      {/* CGギャラリーモーダル */}
+      <div id="gallery-modal" class="modal hidden">
+        <div class="modal-content gallery-modal-content">
+          <div class="modal-header">
+            <h3>CGギャラリー（AI生成・女神セレスティア一枚絵）</h3>
+            <button id="btn-close-gallery" class="close-btn">✕</button>
+          </div>
+          <div id="gallery-grid" class="gallery-grid"></div>
+        </div>
+      </div>
+
+      {/* CG拡大プレビュー */}
+      <div id="cg-preview-modal" class="modal hidden">
+        <div class="cg-preview-wrapper">
+          <img id="cg-preview-img" src="" alt="Preview">
+          <div id="cg-preview-caption"></div>
+          <button id="btn-close-preview" class="close-btn preview-close">✕</button>
+        </div>
+      </div>
+
+      {/* トースト通知 */}
+      <div id="toast" class="hidden">セーブしました！</div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ gameAssets }}>
+    window.__GAME_ASSETS__ = gameAssets;
+  </script>
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={storyJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+</html>

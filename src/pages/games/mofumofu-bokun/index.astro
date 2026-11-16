@@ -1,0 +1,161 @@
+---
+import { getImage } from 'astro:assets';
+import '../../../games/mofumofu-bokun/css/fonts.css';
+import '../../../games/mofumofu-bokun/css/style.css';
+import storyJs from '../../../games/mofumofu-bokun/js/story.js?raw';
+import musicJs from '../../../games/mofumofu-bokun/js/music.js?raw';
+import engineJs from '../../../games/mofumofu-bokun/js/engine.js?raw';
+
+import cgTsun from '../../../games/mofumofu-bokun/assets/images/cg_tsun.png';
+import cgGrooming from '../../../games/mofumofu-bokun/assets/images/cg_grooming.jpg';
+import cgAngry from '../../../games/mofumofu-bokun/assets/images/cg_angry_attack.png';
+import cgSleep from '../../../games/mofumofu-bokun/assets/images/cg_reward_sleep.png';
+
+const [tsun, grooming, angry, sleep] = await Promise.all([
+  getImage({ src: cgTsun, format: 'webp' }),
+  getImage({ src: cgGrooming, format: 'webp' }),
+  getImage({ src: cgAngry, format: 'webp' }),
+  getImage({ src: cgSleep, format: 'webp' }),
+]);
+
+const gameAssets = {
+  tsun: tsun.src,
+  grooming: grooming.src,
+  angry: angry.src,
+  sleep: sleep.src,
+};
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>もふもふ暴君と秘密の添い寝 〜わがままメインクーンお世話日誌〜</title>
+</head>
+<body>
+  <div id="game-wrapper">
+    {/* 16:9 Stage */}
+    <div id="stage">
+      {/* Background / Event CG Layers for smooth crossfade */}
+      <div id="cg-layer-back" class="cg-layer"></div>
+      <div id="cg-layer-front" class="cg-layer active"></div>
+
+      {/* Atmospheric Overlays */}
+      <div id="vignette-overlay"></div>
+      <div id="damage-flash"></div>
+      <div id="particles-container"></div>
+
+      {/* Top HUD (visible during gameplay) */}
+      <header id="hud" class="hidden">
+        <div class="hud-left">
+          <div class="phase-badge">
+            <span class="phase-icon" id="phase-icon">☀️</span>
+            <span id="phase-text">朝・お目覚め</span>
+          </div>
+          <div class="affection-box">
+            <span class="affection-label">レオ様のご機嫌</span>
+            <div class="affection-bar-bg">
+              <div id="affection-bar-fill" style="width: 20%;"></div>
+            </div>
+            <span id="affection-value">20%</span>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div id="bgm-badge" class="bgm-badge hidden" title="Web Audio API でコード演奏中">
+            <span class="bgm-note">♪</span>
+            <span id="bgm-title"></span>
+          </div>
+          <button id="btn-backlog" class="hud-btn" title="会話ログ">📜 ログ</button>
+          <button id="btn-sound" class="hud-btn" title="音楽・効果音 ON/OFF">🔊 音あり</button>
+          <button id="btn-title-return" class="hud-btn" title="タイトルへ戻る">🏠 タイトル</button>
+        </div>
+      </header>
+
+      {/* Title Screen */}
+      <section id="title-screen" class="overlay-screen active">
+        <div class="title-card">
+          <p class="title-subtitle">ツンデレ大型猫・育成サバイバルノベル</p>
+          <h1 class="title-main">
+            もふもふ暴君と秘密の添い寝
+            <span>〜わがままメインクーンお世話日誌〜</span>
+          </h1>
+          <p class="title-desc">
+            気高く美しい銀白のメインクーン「レオ」。<br />
+            ご機嫌を損ねれば<strong>即・噛みつき＆引っかきで死亡</strong>。<br />
+            完璧なお世話をやり遂げて、夢の<strong>「いっしょに添い寝」ご褒美タイム</strong>を目指せ！
+          </p>
+          <div class="title-buttons">
+            <button id="btn-start" class="primary-btn">🐾 お世話を始める</button>
+            <button id="btn-gallery" class="secondary-btn">🖼️ 一枚絵ギャラリー</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Choices Overlay */}
+      <div id="choices-container" class="hidden"></div>
+
+      {/* Reward Interaction Overlay (Final Happy End) */}
+      <div id="reward-controls" class="hidden">
+        <button id="btn-pet-cat" class="reward-btn">✨ レオをそっと撫でる</button>
+        <button id="btn-sleep-together" class="reward-btn primary">🌙 幸せに包まれて眠る</button>
+      </div>
+
+      {/* Dialogue Box */}
+      <div id="dialogue-box" class="hidden">
+        <div id="speaker-badge" class="hidden">
+          <span id="speaker-name">レオ</span>
+        </div>
+        <div id="dialogue-text"></div>
+        <div id="next-indicator">▼</div>
+      </div>
+
+      {/* Ending Screen (Bad End / True End Summary) */}
+      <section id="ending-screen" class="overlay-screen hidden">
+        <div class="ending-card" id="ending-card">
+          <div class="ending-tag" id="ending-tag">BAD END</div>
+          <h2 id="ending-title">鋭利な爪の洗礼</h2>
+          <p id="ending-desc"></p>
+          <div class="ending-stats" id="ending-stats"></div>
+          <div class="ending-buttons">
+            <button id="btn-retry-chapter" class="primary-btn">↩️ この場面からやり直す</button>
+            <button id="btn-restart-all" class="secondary-btn">🔄 最初からやり直す</button>
+            <button id="btn-ending-gallery" class="secondary-btn">🖼️ ギャラリーを見る</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Backlog Modal */}
+      <div id="backlog-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>📜 会話ログ</h3>
+            <button id="btn-close-backlog" class="close-btn">✕</button>
+          </div>
+          <div id="backlog-list"></div>
+        </div>
+      </div>
+
+      {/* CG Gallery Modal */}
+      <div id="gallery-modal" class="modal hidden">
+        <div class="modal-content gallery-content">
+          <div class="modal-header">
+            <h3>🖼️ AI生成 イベントCGギャラリー</h3>
+            <button id="btn-close-gallery" class="close-btn">✕</button>
+          </div>
+          <div id="gallery-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ gameAssets }}>
+    window.__GAME_ASSETS__ = gameAssets;
+  </script>
+  <script is:inline set:html={storyJs}></script>
+  <script is:inline set:html={musicJs}></script>
+  <script is:inline set:html={engineJs}></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+---
+import '../../../games/hyper-invader/style.css';
+import audioJs from '../../../games/hyper-invader/audio.js?raw';
+import gameJs from '../../../games/hyper-invader/game.js?raw';
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>HYPER INVADER // 弾幕強化インベーダー</title>
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="hud-bar">
+      <div class="hud-group">
+        <div class="hud-item">
+          <span class="hud-label">SCORE</span>
+          <span id="score-val" class="hud-value">000000</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">HIGH</span>
+          <span id="high-val" class="hud-value">000000</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">STAGE</span>
+          <span id="stage-val" class="hud-value">01</span>
+        </div>
+      </div>
+
+      <div class="hud-group">
+        <div class="hud-item">
+          <span class="hud-label">POWER</span>
+          <span id="power-val" class="hud-value power-badge">LV.1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">BITS</span>
+          <span id="bits-val" class="hud-value">0/4</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">LIVES</span>
+          <span id="lives-val" class="hud-value">♥♥♥</span>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <button id="btn-bgm" class="ctrl-btn" title="BGM ON/OFF">BGM: ON</button>
+        <button id="btn-sfx" class="ctrl-btn" title="SFX ON/OFF">SFX: ON</button>
+        <button id="btn-pause" class="ctrl-btn" title="Pause (P)">PAUSE</button>
+      </div>
+    </header>
+
+    <main class="stage-wrap">
+      <div id="boss-hud" class="boss-hud hidden">
+        <div class="boss-hud-top">
+          <span id="boss-name" class="boss-name">DREADNOUGHT CORE</span>
+          <span class="boss-rule-tag">基地バリア無敵 // BARRICADE INVINCIBLE</span>
+        </div>
+        <div class="boss-hp-track">
+          <div id="boss-hp-fill" class="boss-hp-fill"></div>
+        </div>
+      </div>
+
+      <canvas id="game-canvas" width="800" height="720"></canvas>
+
+      {/* Overlays */}
+      <div id="overlay-title" class="overlay">
+        <div class="overlay-card">
+          <p class="eyebrow">WEB AUDIO SYNTH + DANMAKU EDITION</p>
+          <h1 class="game-title">HYPER INVADER</h1>
+          <p class="subtitle">パワーアップ超強化 × 弾幕ボスバトル</p>
+
+          <div class="feature-grid">
+            <div class="feature-box">
+              <span class="badge p-badge">P</span>
+              <div>
+                <strong>超強化パワーアップ</strong>
+                <p>敵を倒すとアイテムが出現。最大Lv.5の多方向レーザー＋ホーミング＋ビット機(O)で無双！</p>
+              </div>
+            </div>
+            <div class="feature-box">
+              <span class="badge boss-badge">!</span>
+              <div>
+                <strong>弾幕ボス戦 &amp; 不滅の基地</strong>
+                <p>ウェーブ突破で弾幕ボスが登場！ボスの弾幕は基地(バリケード)を一切破壊できない。基地を守り抜け！</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls-help">
+            <span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> / <kbd>WASD</kbd> 移動</span>
+            <span><kbd>SPACE</kbd> / <kbd>Z</kbd> ショット (自動連射可)</span>
+            <span><kbd>SHIFT</kbd> 低速精密移動</span>
+            <span><kbd>P</kbd> ポーズ</span>
+          </div>
+
+          <button id="btn-start" class="primary-btn">GAME START (SOUND ON)</button>
+        </div>
+      </div>
+
+      <div id="overlay-pause" class="overlay hidden">
+        <div class="overlay-card compact">
+          <h2>PAUSED</h2>
+          <p>ゲーム一時停止中</p>
+          <button id="btn-resume" class="primary-btn">RESUME</button>
+        </div>
+      </div>
+
+      <div id="overlay-gameover" class="overlay hidden">
+        <div class="overlay-card compact">
+          <p class="eyebrow danger">MISSION FAILED</p>
+          <h2>GAME OVER</h2>
+          <p class="final-score">SCORE: <span id="final-score-val">0</span></p>
+          <button id="btn-retry" class="primary-btn">PLAY AGAIN</button>
+        </div>
+      </div>
+    </main>
+
+    {/* Touch / On-screen controls for mobile/tablet */}
+    <footer class="touch-bar">
+      <div class="touch-pad">
+        <button class="touch-btn" data-key="ArrowLeft">◀</button>
+        <button class="touch-btn" data-key="ArrowUp">▲</button>
+        <button class="touch-btn" data-key="ArrowDown">▼</button>
+        <button class="touch-btn" data-key="ArrowRight">▶</button>
+      </div>
+      <div class="touch-actions">
+        <button class="touch-btn wide" data-key="Shift">SLOW</button>
+        <button class="touch-btn fire" data-key="Space">FIRE</button>
+      </div>
+    </footer>
+  </div>
+
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+
+</html>
