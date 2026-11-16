@@ -192,6 +192,10 @@
     highScore: Number(localStorage.getItem('hyper_invader_high') || 0),
     stage: 1,
     lives: 3,
+    worldScale: 1,
+    worldW: W,
+    worldH: H,
+    waveInitialCount: 55,
     screenShake: 0,
     flashAlpha: 0,
     stateTimer: 0,
@@ -289,30 +293,33 @@
     });
   }
 
+  function getWorldScaleForStage(stage) {
+    return stage >= 2 ? 0.7 : 1;
+  }
+
   function createInvaderWave(stage) {
     const list = [];
-    const rows = 5;
-    const cols = 11;
-    const startX = 110;
-    const startY = 86;
+    const isLargeFleet = stage >= 2;
+    const rows = isLargeFleet ? 7 : 5;
+    const cols = isLargeFleet ? 16 : 11;
     const gapX = 52;
     const gapY = 40;
+    const startX = isLargeFleet ? (game.worldW - (cols - 1) * gapX) / 2 : 110;
+    const startY = 86;
 
     for (let r = 0; r < rows; r++) {
       let type = 'octopus';
       let color = '#3dff8b';
       let points = 10;
-      let hp = 1;
-      if (r === 0) {
+      const hp = stage;
+      if (r === 0 || (isLargeFleet && r === 1)) {
         type = 'squid';
         color = '#ff2e93';
         points = 30;
-        hp = stage >= 3 ? 2 : 1;
-      } else if (r <= 2) {
+      } else if (r <= (isLargeFleet ? 4 : 2)) {
         type = 'crab';
         color = '#22f3ff';
         points = 20;
-        hp = stage >= 4 ? 2 : 1;
       }
 
       for (let c = 0; c < cols; c++) {
@@ -340,10 +347,10 @@
       'ABYSSAL LEVIATHAN',
       'OMEGA VALKYRIE',
     ];
-    const maxHp = 1350 + (stage - 1) * 750;
+    const maxHp = 1350 * stage;
     return {
       name: names[(stage - 1) % names.length] + (stage > 4 ? ` MK-${stage}` : ''),
-      x: W / 2,
+      x: game.worldW / 2,
       y: -90,
       targetY: 132,
       w: 176,
@@ -369,6 +376,9 @@
     game.score = 0;
     game.stage = 1;
     game.lives = 3;
+    game.worldScale = 1;
+    game.worldW = W;
+    game.worldH = H;
     game.player = createPlayer();
     game.barricades = createBarricades();
     game.playerBullets = [];
@@ -389,9 +399,34 @@
   }
 
   function startWave(stage) {
+    const prevWorldW = game.worldW;
+    const prevWorldH = game.worldH;
+    const nextScale = getWorldScaleForStage(stage);
+    game.worldScale = nextScale;
+    game.worldW = W / nextScale;
+    game.worldH = H / nextScale;
+
+    if (prevWorldW !== game.worldW || prevWorldH !== game.worldH) {
+      const scaleRatioX = game.worldW / prevWorldW;
+      const deltaY = game.worldH - prevWorldH;
+      if (game.player) {
+        game.player.x *= scaleRatioX;
+        game.player.y += deltaY;
+      }
+      game.barricades.forEach((b) => {
+        b.x *= scaleRatioX;
+        b.y += deltaY;
+      });
+      game.items.forEach((it) => {
+        it.x *= scaleRatioX;
+        it.y += deltaY;
+      });
+    }
+
     game.stage = stage;
     game.state = 'WAVE';
     game.invaders = createInvaderWave(stage);
+    game.waveInitialCount = game.invaders.length;
     game.invaderDir = 1;
     game.invaderMoveTimer = 0;
     game.invaderShootTimer = 1.0;
@@ -402,7 +437,12 @@
     bossHud.classList.add('hidden');
     window.sound.setTempoScale(1.0);
     window.sound.startBgm('wave');
-    addFloatingText(W / 2, H / 2 - 40, `STAGE ${stage} START!`, '#22f3ff', 1.4);
+    addFloatingText(game.worldW / 2, game.worldH / 2 - 40, `STAGE ${stage} START!`, '#22f3ff', 1.4);
+    if (stage === 2) {
+      addFloatingText(game.worldW / 2, game.worldH / 2 + 8, 'MASSIVE FLEET APPROACHING!', '#ffd447', 1.3);
+    } else if (stage === 3) {
+      addFloatingText(game.worldW / 2, game.worldH / 2 + 8, 'ENEMY FIREPOWER OVERDRIVE!', '#ff2e93', 1.3);
+    }
   }
 
   function startBossWarning() {
@@ -554,7 +594,7 @@
     window.sound.playBomb();
     game.screenShake = 0.35;
     game.flashAlpha = 0.5;
-    addFloatingText(W / 2, H / 2, 'HYPER NOVA BOMB!!', '#ff2e93', 1.2);
+    addFloatingText(game.worldW / 2, game.worldH / 2, 'HYPER NOVA BOMB!!', '#ff2e93', 1.2);
 
     // Convert all enemy bullets to particles & score
     game.enemyBullets.forEach((b) => {
@@ -768,13 +808,13 @@
       b.invulnTimer = Math.max(0, b.invulnTimer - dt);
     }
 
-    // Smooth figure-8 / patrol movement starting cleanly from (W/2, targetY)
-    b.moveTime += dt;
+    // Smooth figure-8 / patrol movement starting cleanly from (worldW/2, targetY)
     const hpRatio = b.hp / b.maxHp;
     const phase = hpRatio > 0.65 ? 1 : hpRatio > 0.30 ? 2 : 3;
     const moveSpeed = phase === 1 ? 0.9 : phase === 2 ? 1.25 : 1.55;
-    b.x = W / 2 + Math.sin(b.moveTime * moveSpeed) * 210;
-    b.y = b.targetY + Math.sin(b.moveTime * moveSpeed * 2) * 26;
+    b.moveTime += dt * moveSpeed;
+    b.x = game.worldW / 2 + Math.sin(b.moveTime) * (210 / game.worldScale);
+    b.y = b.targetY + Math.sin(b.moveTime * 2) * 26;
 
     const spawnBullet = (x, y, angle, speed, color, r = 5) => {
       game.enemyBullets.push({
@@ -880,9 +920,9 @@
         dy *= Math.SQRT1_2;
       }
 
-      p.x = Math.max(24, Math.min(W - 24, p.x + dx * speed * dt));
+      p.x = Math.max(24, Math.min(game.worldW - 24, p.x + dx * speed * dt));
       // Allow vertical micro-dodging in the lower defense zone
-      p.y = Math.max(H - 175, Math.min(H - 34, p.y + dy * speed * dt));
+      p.y = Math.max(game.worldH - 175, Math.min(game.worldH - 34, p.y + dy * speed * dt));
 
       p.fireCooldown -= dt;
       const shooting = keys.has('Space') || keys.has('KeyZ');
@@ -926,7 +966,7 @@
       if (game.ufoTimer <= 0) {
         const fromLeft = Math.random() < 0.5;
         game.ufo = {
-          x: fromLeft ? -30 : W + 30,
+          x: fromLeft ? -30 : game.worldW + 30,
           y: 44,
           vx: fromLeft ? 145 : -145,
           w: 44,
@@ -937,7 +977,7 @@
       }
     } else {
       game.ufo.x += game.ufo.vx * dt;
-      if (game.ufo.x < -50 || game.ufo.x > W + 50) {
+      if (game.ufo.x < -50 || game.ufo.x > game.worldW + 50) {
         game.ufo = null;
       }
     }
@@ -949,9 +989,10 @@
       return;
     }
 
-    const ratio = count / 55;
+    const ratio = Math.min(1, count / Math.max(1, game.waveInitialCount));
+    const effectiveStage = Math.min(game.stage, 3);
     window.sound.setTempoScale(1.0 + (1 - ratio) * 0.35);
-    const stepInterval = Math.max(0.08, (0.55 * ratio + 0.06) / (1 + (game.stage - 1) * 0.12));
+    const stepInterval = Math.max(0.08, (0.55 * ratio + 0.06) / (1 + (effectiveStage - 1) * 0.12));
 
     game.invaderMoveTimer += dt;
     if (game.invaderMoveTimer >= stepInterval) {
@@ -961,7 +1002,7 @@
       let hitEdge = false;
       const stepX = 14 * game.invaderDir;
       for (const inv of game.invaders) {
-        if (inv.x + stepX < 28 || inv.x + stepX > W - 28) {
+        if (inv.x + stepX < 28 || inv.x + stepX > game.worldW - 28) {
           hitEdge = true;
           break;
         }
@@ -982,7 +1023,7 @@
 
       // Check if invaders reached player line
       for (const inv of game.invaders) {
-        if (inv.y + inv.h / 2 >= H - 68) {
+        if (inv.y + inv.h / 2 >= game.worldH - 68) {
           game.lives = 0;
           hurtPlayer();
           return;
@@ -993,18 +1034,51 @@
     // Invader shooting
     game.invaderShootTimer -= dt;
     if (game.invaderShootTimer <= 0) {
-      game.invaderShootTimer = Math.max(0.32, 1.05 - game.stage * 0.08) * (0.6 + ratio * 0.5);
-      const shooter = game.invaders[Math.floor(Math.random() * game.invaders.length)];
-      if (shooter) {
-        game.enemyBullets.push({
-          x: shooter.x,
-          y: shooter.y + 14,
-          vx: 0,
-          vy: 260 + game.stage * 20,
-          r: 4.5,
-          color: '#ff6b6b',
-          fromBoss: false, // Normal invader bullets CAN erode barricades
-        });
+      const overdrive = game.stage >= 3;
+      const baseShootInterval = overdrive
+        ? 0.72 * (0.55 + ratio * 0.45)
+        : Math.max(0.32, 1.05 - effectiveStage * 0.08) * (0.6 + ratio * 0.5);
+      game.invaderShootTimer = Math.max(0.22, baseShootInterval);
+
+      const pickShooter = () => game.invaders[Math.floor(Math.random() * game.invaders.length)];
+      const bulletSpeed = 260 + effectiveStage * 25;
+
+      // Normal invader bullets (CAN erode barricades)
+      const normalShots = overdrive ? 2 : 1;
+      for (let s = 0; s < normalShots; s++) {
+        const shooter = pickShooter();
+        if (shooter) {
+          game.enemyBullets.push({
+            x: shooter.x,
+            y: shooter.y + 14,
+            vx: 0,
+            vy: bulletSpeed,
+            r: 4.5,
+            color: '#ff6b6b',
+            fromBoss: false,
+          });
+        }
+      }
+
+      // Stage 3+: Additional boss-type bullets (CANNOT erode barricades, aimed/spread)
+      if (overdrive) {
+        const eliteShooter = pickShooter();
+        if (eliteShooter && game.player) {
+          const aim = Math.atan2(game.player.y - eliteShooter.y, game.player.x - eliteShooter.x);
+          const bossBulletSpeed = 270;
+          for (const offset of [-0.16, 0, 0.16]) {
+            const a = aim + offset;
+            game.enemyBullets.push({
+              x: eliteShooter.x,
+              y: eliteShooter.y + 14,
+              vx: Math.cos(a) * bossBulletSpeed,
+              vy: Math.sin(a) * bossBulletSpeed,
+              r: 5,
+              color: offset === 0 ? '#ff2e93' : '#22f3ff',
+              fromBoss: true, // CANNOT destroy barricades!
+            });
+          }
+        }
       }
     }
 
@@ -1031,7 +1105,7 @@
         addScore(bonus);
         window.sound.playVictory();
         spawnParticles(b.x, b.y, '#22f3ff', 55, 320);
-        addFloatingText(W / 2, H / 2 - 20, `BOSS DEFEATED! +${bonus}`, '#ffd447', 1.8);
+        addFloatingText(game.worldW / 2, game.worldH / 2 - 20, `BOSS DEFEATED! +${bonus}`, '#ffd447', 1.8);
         game.boss = null;
         bossHud.classList.add('hidden');
         game.state = 'STAGE_CLEAR';
@@ -1080,7 +1154,7 @@
       b.x += b.vx * dt;
       b.y += b.vy * dt;
 
-      if (b.y < -30 || b.y > H + 30 || b.x < -30 || b.x > W + 30) {
+      if (b.y < -30 || b.y > game.worldH + 30 || b.x < -30 || b.x > game.worldW + 30) {
         game.playerBullets.splice(i, 1);
         continue;
       }
@@ -1159,7 +1233,7 @@
       eb.x += eb.vx * dt;
       eb.y += eb.vy * dt;
 
-      if (eb.x < -20 || eb.x > W + 20 || eb.y < -20 || eb.y > H + 20) {
+      if (eb.x < -20 || eb.x > game.worldW + 20 || eb.y < -20 || eb.y > game.worldH + 20) {
         game.enemyBullets.splice(i, 1);
         continue;
       }
@@ -1189,7 +1263,7 @@
       const it = game.items[i];
       it.y += it.vy * dt;
       it.phase += dt * 5;
-      if (it.y > H + 24) {
+      if (it.y > game.worldH + 24) {
         game.items.splice(i, 1);
         continue;
       }
@@ -1406,6 +1480,9 @@
       ctx.fillRect(s.x, s.y, s.r, s.r);
     }
 
+    ctx.save();
+    ctx.scale(game.worldScale, game.worldScale);
+
     drawBarricades();
 
     // UFO
@@ -1487,6 +1564,8 @@
       ctx.fillText(ft.text, ft.x, ft.y);
     }
     ctx.globalAlpha = 1;
+
+    ctx.restore();
 
     // Boss Warning Banner
     if (game.state === 'BOSS_WARNING') {
