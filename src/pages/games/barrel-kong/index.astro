@@ -1,0 +1,65 @@
+---
+import '../../../games/barrel-kong/style.css';
+import audioJs from '../../../games/barrel-kong/audio.js?raw';
+import gameJs from '../../../games/barrel-kong/game.js?raw';
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>BARREL KONG - Retro Arcade</title>
+</head>
+<body>
+  <div class="cabinet">
+    <header class="cabinet-header">
+      <div class="title-badge">
+        <span class="kong-icon">🦍</span>
+        <h1>BARREL KONG</h1>
+      </div>
+      <div class="audio-controls">
+        <button id="muteBtn" class="btn-arcade" title="Mute / Unmute (M)">🔊 BGM ON</button>
+        <label class="vol-wrap" title="Volume">
+          <span>VOL</span>
+          <input id="volSlider" type="range" min="0" max="100" value="65" />
+        </label>
+        <button id="pauseBtn" class="btn-arcade" title="Pause (P)">⏸ PAUSE</button>
+      </div>
+    </header>
+
+    <main class="screen-bezel">
+      <canvas id="gameCanvas" width="480" height="540"></canvas>
+      <div class="scanlines" aria-hidden="true"></div>
+    </main>
+
+    <footer class="cabinet-footer">
+      <div class="controls-legend">
+        <span><kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> 移動</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> / <kbd>W</kbd><kbd>S</kbd> ハシゴ</span>
+        <span><kbd>SPACE</kbd> / <kbd>Z</kbd> ジャンプ</span>
+        <span><kbd>M</kbd> ミュート</span>
+        <span><kbd>P</kbd> ポーズ</span>
+      </div>
+
+      {/* Touch controls for mobile / mouse */}
+      <div class="touch-controls" id="touchControls">
+        <div class="dpad">
+          <button class="pad-btn up" data-key="ArrowUp">▲</button>
+          <div class="dpad-mid">
+            <button class="pad-btn left" data-key="ArrowLeft">◀</button>
+            <button class="pad-btn right" data-key="ArrowRight">▶</button>
+          </div>
+          <button class="pad-btn down" data-key="ArrowDown">▼</button>
+        </div>
+        <button class="jump-btn" data-key="Space">JUMP</button>
+      </div>
+    </footer>
+  </div>
+
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+</html>
