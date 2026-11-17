@@ -1,0 +1,77 @@
+---
+import '../../../games/pixel-storm-breakout/style.css';
+import audioJs from '../../../games/pixel-storm-breakout/audio.js?raw';
+import gameJs from '../../../games/pixel-storm-breakout/game.js?raw';
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" href="/favicon.ico" />
+  <title>PIXEL STORM BREAKOUT — 超絶ブロック崩し</title>
+</head>
+<body>
+  <div id="app">
+    <div id="stage-frame">
+      <canvas id="game-canvas" width="1600" height="900"></canvas>
+
+      {/* Title / Overlay UI */}
+      <div id="overlay" class="overlay">
+        <div class="overlay-card">
+          <div class="badge">1600 × 900 / 1-DOT BALL EDITION</div>
+          <h1 id="overlay-title">PIXEL STORM BREAKOUT</h1>
+          <p id="overlay-subtitle" class="subtitle">
+            数万個の極小ブロックを、1〜99に分裂する1ドットボールの嵐で粉砕せよ！
+          </p>
+
+          <div id="overlay-stats" class="stats-grid hidden">
+            <div class="stat-box">
+              <span class="stat-label">SCORE</span>
+              <span id="stat-score" class="stat-val">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">DESTROYED</span>
+              <span id="stat-blocks" class="stat-val">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">PEAK BALLS</span>
+              <span id="stat-peak" class="stat-val">1</span>
+            </div>
+          </div>
+
+          <div class="stage-select">
+            <span class="select-label">SELECT STAGE:</span>
+            <div id="stage-buttons" class="stage-buttons"></div>
+          </div>
+
+          <div class="actions">
+            <button id="btn-start" class="btn-primary">GAME START</button>
+          </div>
+
+          <div class="controls-hint">
+            <span><strong>マウス移動</strong> / <strong>← →</strong> : パドル操作</span>
+            <span><strong>クリック</strong> / <strong>Space</strong> : 発射</span>
+            <span><strong>P</strong> : ポーズ</span>
+            <span><strong>M</strong> : ミュート</span>
+            <span><strong>V</strong> : ボール視認性切替</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Top-right quick controls */}
+      <div id="quick-controls">
+        <button id="btn-vis" class="icon-btn" title="Ball Visibility Mode (V)">👁️</button>
+        <button id="btn-mute" class="icon-btn" title="Mute (M)">🔊</button>
+        <button id="btn-pause" class="icon-btn" title="Pause (P)">⏸</button>
+        <button id="btn-menu" class="icon-btn" title="Menu">☰</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline set:html={audioJs}></script>
+  <script is:inline set:html={gameJs}></script>
+</body>
+</html>
